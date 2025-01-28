@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app
     depends_on:
       - redis
     environment:
@@ -16,7 +18,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A app.celery_app worker --loglevel=info
+    command: celery -A app.celery_app worker --loglevel=debug
+    volumes:
+      - .:/app
     depends_on:
       - redis
     environment:
