@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pokemon_battle_simulator_backend"
+version = "0.1.0"
+description = "A Pokemon battle simulator backend"
+authors = ["Hannah Willoughby <hannah@hannahwilloughby.dev>"]
+packages = [
+    { include = "app" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.7"
+uvicorn = "^0.34.0"
+pydantic = "^2.10.6"
+celery = "^5.4.0"
+redis = "^5.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
