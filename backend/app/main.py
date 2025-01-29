@@ -3,8 +3,6 @@ from app.routers import ws
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import battles
-from app.redis import redis_client
-from celery.result import AsyncResult
 
 app = FastAPI(
     title="Pokemon Battle Simulator",

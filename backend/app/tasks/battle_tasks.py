@@ -5,12 +5,18 @@ import json
 import time
 from datetime import datetime
 
+from app.dtos.battles import Pokemon
+
 logger = logging.getLogger(__name__)
 
 @celery.task(name='app.tasks.battle_tasks.simulate_battle', bind=True)
-def simulate_battle(self, team1, team2):
+def simulate_battle(self, pokemon1_data: dict, pokemon2_data: dict):
     task_id = self.request.id
     logger.info(f"Starting battle simulation task {task_id}")
+    
+    # Convert dictionary data to Pokemon objects
+    pokemon1 = Pokemon(**pokemon1_data)
+    pokemon2 = Pokemon(**pokemon2_data)
     
     logs_key = f"logs:{task_id}"
     redis_client.delete(logs_key)  # Clear previous logs if any
@@ -19,8 +25,8 @@ def simulate_battle(self, team1, team2):
         # Initial battle state
         redis_client.rpush(logs_key, json.dumps({
             "type": "BATTLE_START",
-            "team1": team1,
-            "team2": team2,
+            "pokemon1": pokemon1.name,
+            "pokemon2": pokemon2.name,
             "timestamp": str(datetime.now())
         }))
         
@@ -30,7 +36,7 @@ def simulate_battle(self, team1, team2):
             log_message = {
                 "type": "TURN",
                 "turn_number": turn,
-                "action": f"{team1['pokemon'][0]} attacks {team2['pokemon'][0]}",
+                "action": f"{pokemon1.name} attacks {pokemon2.name}",
                 "timestamp": str(datetime.now())
             }
             
@@ -49,7 +55,7 @@ def simulate_battle(self, team1, team2):
         # Final result
         result = {
             "type": "BATTLE_END",
-            "winner": team1['pokemon'][0],
+            "winner": pokemon1.name,
             "timestamp": str(datetime.now())
         }
         redis_client.rpush(logs_key, json.dumps(result))
@@ -62,7 +68,7 @@ def simulate_battle(self, team1, team2):
         
         return {
             "status": "COMPLETED",
-            "winner": team1['pokemon'][0],
+            "winner": pokemon1.name,
             "logs": [json.loads(log) for log in redis_client.lrange(logs_key, 0, -1)]
         }
         
