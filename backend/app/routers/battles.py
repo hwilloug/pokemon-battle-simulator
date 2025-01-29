@@ -4,8 +4,6 @@ from celery.result import AsyncResult
 from app.tasks.battle_tasks import simulate_battle
 from app.celery_app import celery
 from app.tasks.health_tasks import health_check
-from app.redis import redis_client
-import json
 
 from app.dtos.battles import StartBattleDTO
 from app.dtos.tasks import TaskStatus
@@ -47,22 +45,3 @@ async def start_battle(
     except Exception as e:
         logger.error(f"Error starting battle: {e}", exc_info=True)
         raise
-
-@router.get("/{id}/stop")
-async def stop_battle(id: int):
-    return {"message": f"Battle {id} stopped"}
-
-
-@router.get("/{id}")
-async def get_battle(id: int):
-    return {"message": f"Battle {id} started"}
-
-
-@router.get("/{id}/status")
-async def get_battle_status(id: int):
-    return {"message": f"Battle {id} status"}
-
-
-@router.get("/{id}/log")
-async def get_battle_log(id: int):
-    return {"message": f"Battle {id} log"}

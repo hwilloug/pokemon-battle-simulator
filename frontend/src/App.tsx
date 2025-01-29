@@ -141,7 +141,7 @@ function App() {
               <p>Turn {message.turn_number}: {message.action}</p>
             )}
             {message.status === 'COMPLETED' && (
-              <p>Battle ended! Winner: {message.winner}</p>
+              <p>{selectedPokemon1?.name === message.winner ? capitalize(selectedPokemon2!.name) : capitalize(selectedPokemon1!.name)} is unable to battle! {capitalize(message.winner!)} wins!</p>
             )}
             {message.type === 'ERROR' && (
               <p className="text-red-500">Error: {message.message}</p>
