@@ -34,10 +34,12 @@ except Exception as e:
 
 # Update imports to include the tasks subfolder
 celery.conf.update(
-    imports=['app.tasks.battle_tasks'],  # Update this line to point to specific task module
-    include=['app.tasks.battle_tasks'],  # Update this line as well
+    imports=[
+        'app.tasks.battle_tasks',
+        'app.tasks.health_tasks'
+    ],
     task_routes={
-        "app.tasks.*": {"queue": "default"}
+        'app.tasks.*': {'queue': 'default'}
     },
     task_track_started=True,
     task_serializer='json',
@@ -45,6 +47,27 @@ celery.conf.update(
     result_serializer='json',
     timezone='UTC',
     enable_utc=True,
+    broker_connection_retry_on_startup=True,
+    worker_prefetch_multiplier=1,
+    worker_concurrency=1,
+    task_always_eager=False,
+    task_acks_late=True,
 )
 
-celery.autodiscover_tasks(['app.tasks'], force=True)
+# Add these debug lines after the conf.update
+logger.info("Celery Configuration:")
+logger.info(f"Broker URL: {celery.conf.broker_url}")
+logger.info(f"Result Backend: {celery.conf.result_backend}")
+logger.info(f"Task Routes: {celery.conf.task_routes}")
+logger.info("Available Tasks:")
+for task_name in sorted(celery.tasks.keys()):
+    logger.info(f"- {task_name}")
+
+# Test broker connection again after configuration
+try:
+    conn = celery.connection()
+    conn.connect()
+    logger.info("Successfully connected to the broker!")
+    conn.release()
+except Exception as e:
+    logger.error(f"Failed to connect to the broker: {e}")

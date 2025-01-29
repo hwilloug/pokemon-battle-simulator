@@ -1,7 +1,8 @@
 import asyncio
+from app.routers import ws
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import battles, status
+from app.routers import battles
 from app.redis import redis_client
 from celery.result import AsyncResult
 
@@ -12,36 +13,14 @@ app = FastAPI(
 )
 
 app.include_router(battles.router)
-app.include_router(status.router)
+app.include_router(ws.router)
+
+origins = ["*"]  # In production, replace with specific origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.websocket("/ws/{task_id}")
-async def battle_ws(websocket: WebSocket, task_id: str):
-    await websocket.accept()
-    try:
-        while True:
-            # Check task status
-            result = AsyncResult(task_id)
-            status = result.status
-
-            # Retrieve logs or updates from Redis
-            logs = redis_client.lrange(f"logs:{task_id}", 0, -1)
-
-            # Send updates to the WebSocket client
-            await websocket.send_json({"status": status, "logs": logs})
-
-            # Break the loop if the task is complete
-            if result.ready():
-                break
-
-            # Wait before checking again
-            await asyncio.sleep(1)
-    except WebSocketDisconnect:
-        print(f"WebSocket disconnected for task {task_id}")

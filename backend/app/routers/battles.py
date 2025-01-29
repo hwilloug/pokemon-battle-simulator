@@ -3,6 +3,9 @@ import logging
 from celery.result import AsyncResult
 from app.tasks.battle_tasks import simulate_battle
 from app.celery_app import celery
+from app.tasks.health_tasks import health_check
+from app.redis import redis_client
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +13,6 @@ router = APIRouter(
     prefix="/battles",
     tags=["battles"]
 )
-
 
 @router.get("/start")
 async def start_battle():
@@ -21,12 +23,16 @@ async def start_battle():
         conn.connect()
         logger.info("Successfully connected to broker")
         
-        # Send task
-        task = simulate_battle.delay(team1={"name": "Team 1"}, team2={"name": "Team 2"})
+        # Send task with test data
+        task = simulate_battle.delay(
+            team1={"name": "Team 1", "pokemon": ["Pikachu"]},
+            team2={"name": "Team 2", "pokemon": ["Charizard"]}
+        )
         logger.info(f"Task sent with ID: {task.id}")
         
         # Get task status immediately after creation
         task_result = AsyncResult(task.id)
+        logger.info(f"Task status: {task_result.status}")
         return {
             "task_id": task.id,
             "task_status": task_result.status,

@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A app.celery_app worker --loglevel=debug
+    command: bash -c "cd /app && celery -A app.celery_app worker -Q celery,default --loglevel=info"
     volumes:
       - .:/app
     depends_on:
@@ -26,6 +26,8 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
 
   redis:
     image: redis:7.0
